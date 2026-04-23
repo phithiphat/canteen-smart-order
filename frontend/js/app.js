@@ -212,6 +212,7 @@ async function login(role) {
 
 function logout() { 
   api.clearToken();
+  localStorage.removeItem('cso_session');
   App.role = null; 
   App.user = null; 
   App.cart = []; 
@@ -515,18 +516,57 @@ function showPushNotification() {
   setTimeout(() => { t.remove(); }, 4600);
 }
 
-// ===== DATA SYNC (CROSS-TAB & PERSISTENCE) =====
-// Data persistence disabled - using temporary mock data only
+// ===== DATA SYNC (PERSISTENCE) =====
 function saveState() {
-  // Disabled: Data will not be saved permanently
+  if (App.role && App.user) {
+    localStorage.setItem('cso_session', JSON.stringify({
+      role: App.role,
+      user: App.user,
+      currentPage: App.currentPage
+    }));
+  }
 }
 
 function loadState() {
-  // Disabled: Always load fresh mock data from data.js
+  // Disabled: session is restored via restoreSession() instead
+}
+
+async function restoreSession() {
+  const token = api.getToken();
+  if (!token) { render(); return; } // No token → show login
+
+  const saved = localStorage.getItem('cso_session');
+  if (!saved) { render(); return; }
+
+  try {
+    const { role, user, currentPage } = JSON.parse(saved);
+    if (!role || !user) { render(); return; }
+
+    App.role = role;
+    App.user = user;
+    App.currentPage = currentPage || (role === 'customer' ? 'menu' : role === 'vendor' ? 'v-orders' : 'a-dashboard');
+
+    // If vendor, re-fetch shopId in case it wasn't saved
+    if (role === 'vendor' && !App.user.shopId) {
+      try {
+        const profile = await api.getVendorMe();
+        App.user.shopId = profile.id;
+        App.user.name = profile.storeName || App.user.name;
+        saveState();
+      } catch(e) { /* ignore */ }
+    }
+
+    await prefetchData(App.currentPage);
+    render();
+  } catch(e) {
+    // Corrupted saved state → go to login
+    localStorage.removeItem('cso_session');
+    api.clearToken();
+    render();
+  }
 }
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
-  loadState();
-  render();
+  restoreSession();
 });
