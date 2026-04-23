@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+
+# Environment variables (ห้ามเอาขึ้น GitHub เด็ดขาด!)
+.env
+backend/.env
+*.env
+
+# Prisma generated client
+backend/prisma/generated/
+
+# Debug / temp files
+backend/check.js
+backend/check_orders.js
+backend/check_vendors.js
+backend/check_vendor_orders.js
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db

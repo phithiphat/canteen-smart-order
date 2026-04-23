@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  CUSTOMER
+  VENDOR
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String?  // nullable for SSO mock
+  name      String
+  role      Role     @default(CUSTOMER)
+  createdAt DateTime @default(now())
+
+  // Relations
+  orders    Order[]
+  vendorProfile VendorProfile?
+}
+
+model VendorProfile {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique
+  storeName   String
+  description String?
+  isOpen      Boolean  @default(false)
+  isSuspended Boolean  @default(false)
+  user        User     @relation(fields: [userId], references: [id])
+  menus       Menu[]
+  orders      Order[]
+}
+
+model Menu {
+  id          Int      @id @default(autoincrement())
+  vendorId    Int
+  name        String
+  price       Decimal
+  imageUrl    String?
+  isAvailable Boolean  @default(true)
+  vendor      VendorProfile @relation(fields: [vendorId], references: [id])
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id          Int      @id @default(autoincrement())
+  customerId  Int
+  vendorId    Int
+  status      OrderStatus @default(PENDING)
+  totalAmount Decimal
+  pickupTime  DateTime?
+  createdAt   DateTime @default(now())
+  
+  customer    User     @relation(fields: [customerId], references: [id])
+  vendor      VendorProfile @relation(fields: [vendorId], references: [id])
+  orderItems  OrderItem[]
+}
+
+model OrderItem {
+  id                  Int      @id @default(autoincrement())
+  orderId             Int
+  menuId              Int
+  quantity            Int
+  specialInstructions String?
+  
+  order               Order    @relation(fields: [orderId], references: [id])
+  menu                Menu     @relation(fields: [menuId], references: [id])
+}
+
+model Announcement {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+}
