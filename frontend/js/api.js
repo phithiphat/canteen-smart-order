@@ -2,7 +2,7 @@
 // Auto-detect: localhost = development, otherwise = production (Render)
 const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? 'http://localhost:3000/api'
-  : 'https://canteen-smart-order.onrender.com/api'; // 🔁 เปลี่ยนเป็น URL จริงของ Render หลัง deploy
+  : 'https://canteen-smart-order.onrender.com/api';
 
 const api = {
   getToken: () => localStorage.getItem('token'),
