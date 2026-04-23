@@ -2,11 +2,6 @@
 node_modules/
 backend/node_modules/
 
-# Environment variables (ห้ามเอาขึ้น GitHub เด็ดขาด!)
-.env
-backend/.env
-*.env
-
 # Prisma generated client
 backend/prisma/generated/
 
